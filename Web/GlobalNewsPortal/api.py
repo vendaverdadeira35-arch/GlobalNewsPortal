@@ -61,17 +61,20 @@ def run_bot_task():
     print("Iniciando varredura via gatilho da API...")
     novas_noticias = fetch_new_articles()
     if novas_noticias:
-        send_news_email(novas_noticias)
+        try:
+            send_news_email(novas_noticias)
+        except Exception as e:
+            print("Erro ao enviar email (provavelmente sem credenciais):", e)
 
 @app.get("/api/trigger")
-def trigger_bot(background_tasks: BackgroundTasks, api_key: str = Security(api_key_header)):
+def trigger_bot(api_key: str = Security(api_key_header)):
     # Protege contra curiosos clicando no link
     if api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Acesso negado. Chave inválida.")
         
-    # Envia a tarefa para o fundo para a API não travar
-    background_tasks.add_task(run_bot_task)
-    return {"status": "success", "message": "O robô foi acordado e está buscando notícias no fundo."}
+    # Executa a varredura IMEDIATAMENTE (Síncrono para o Render não matar o processo)
+    run_bot_task()
+    return {"status": "success", "message": "O robô fez a varredura com sucesso!"}
 
 if __name__ == "__main__":
     import uvicorn

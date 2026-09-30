@@ -1,11 +1,13 @@
 import feedparser
 from database import is_news_seen, mark_as_seen
 
-# Fontes globais de alto impacto (RSS Feeds)
+# Fontes globais de alto impacto (Negócios, Criptomoedas e Mundo)
 FEEDS = [
-    "http://feeds.bbci.co.uk/news/world/rss.xml",       # BBC News World
-    "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", # NYT World
-    "https://feeds.a.dj.com/rss/RSSWorldNews.xml"       # Wall Street Journal
+    "http://feeds.bbci.co.uk/news/world/rss.xml",             # BBC World
+    "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",        # Wall Street Journal (Business)
+    "https://www.coindesk.com/arc/outboundfeeds/rss/",        # CoinDesk (Crypto)
+    "https://cointelegraph.com/rss",                          # CoinTelegraph (Crypto)
+    "https://search.cnbc.com/rs/search/combinedcms/view.xml?id=10000664" # CNBC (Finance)
 ]
 
 def fetch_new_articles():
