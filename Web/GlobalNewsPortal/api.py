@@ -2,19 +2,25 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException, Security, Query
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
-import sqlite3
 import os
 import sys
 import asyncio
 from contextlib import asynccontextmanager
+from supabase import create_client, Client
 
 # Permitir importar o nosso robô da outra pasta
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Scripts', 'GlobalNewsBot')))
 from scraper import fetch_new_articles, search_internet_live, read_full_article
 from notifier import send_news_email
 
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Scripts', 'GlobalNewsBot', 'news.db'))
 HTML_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'index.html'))
+DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Scripts', 'GlobalNewsBot', 'news.db'))
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_KEY)
+if USE_SUPABASE:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def run_bot_task_sync():
     print("Iniciando varredura em background...")
@@ -28,21 +34,19 @@ def run_bot_task_sync():
 async def periodic_scraper():
     while True:
         try:
-            # Roda no threadpool para não travar o event loop do FastAPI
             await asyncio.to_thread(run_bot_task_sync)
         except Exception as e:
             print("Erro no scraper de background:", e)
-        # Pausa de 30 minutos entre as varreduras automáticas
         await asyncio.sleep(1800)
 
 @asynccontextmanager
-async lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):
     # Ao iniciar a API, lança o job automático de varredura
     asyncio.create_task(periodic_scraper())
     yield
     print("Desligando motor de busca...")
 
-app = FastAPI(title="Global News Portal API V3.0", lifespan=lifespan)
+app = FastAPI(title="Global News Portal API V4.0", lifespan=lifespan)
 
 API_KEY = "sua_chave_secreta_123"
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
@@ -62,36 +66,54 @@ def serve_frontend():
 @app.get("/api/news")
 def get_news(category: str = Query(None)):
     try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        # A base de dados v2 não tinha a coluna 'category'. Vamos ignorar o erro se faltar
-        # Mas para a V3, ela deveria existir. Faremos um select * e filtramos no Python para garantir compatibilidade
-        cursor.execute("SELECT * FROM seen_news ORDER BY published_at DESC LIMIT 100")
-        rows = cursor.fetchall()
-        
         news_list = []
-        for row in rows:
-            cat = row["source"] if "category" not in row.keys() else row.get("category", row["source"])
-            news_list.append({
-                "id": row["id"],
-                "title": row["title"],
-                "link": row["link"] if "link" in row.keys() else "#",
-                "summary": row["summary"] if "summary" in row.keys() else "Sem resumo.",
-                "source": row["source"] if "source" in row.keys() else "Desconhecida",
-                "published_at": row["published_at"],
-                "category": cat
-            })
+        if USE_SUPABASE:
+            query = supabase.table("seen_news").select("*").order("published_at", desc=True).limit(50)
+            if category:
+                query = query.eq("category", category)
+            response = query.execute()
+            for row in response.data:
+                news_list.append({
+                    "id": row.get("id"),
+                    "title": row.get("title"),
+                    "link": row.get("link", "#"),
+                    "summary": row.get("summary", "Sem resumo."),
+                    "source": row.get("source", "Desconhecida"),
+                    "published_at": row.get("published_at"),
+                    "category": row.get("category", "Geral")
+                })
+        else:
+            import sqlite3
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
             
-        conn.close()
+            if category:
+                cursor.execute("SELECT * FROM seen_news WHERE category = ? ORDER BY published_at DESC LIMIT 50", (category,))
+            else:
+                cursor.execute("SELECT * FROM seen_news ORDER BY published_at DESC LIMIT 50")
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                keys = row.keys()
+                cat = row["category"] if "category" in keys else row.get("source", "Geral")
+                news_list.append({
+                    "id": row["id"],
+                    "title": row["title"],
+                    "link": row["link"] if "link" in keys else "#",
+                    "summary": row["summary"] if "summary" in keys else "Sem resumo.",
+                    "source": row["source"] if "source" in keys else "Desconhecida",
+                    "published_at": row["published_at"],
+                    "category": cat
+                })
+            conn.close()
+            
         return {"status": "success", "data": news_list}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 @app.get("/api/search")
 def search_news(q: str = Query(..., min_length=2)):
-    # Faz a pesquisa na web ao vivo
     try:
         results = search_internet_live(q)
         return {"status": "success", "data": results}
@@ -100,7 +122,6 @@ def search_news(q: str = Query(..., min_length=2)):
 
 @app.get("/api/read")
 def read_article(url: str = Query(..., description="A URL completa do artigo")):
-    # Extrai e traduz qualquer artigo da web para português na hora
     try:
         content = read_full_article(url)
         return {"status": "success", "content": content}
@@ -112,7 +133,6 @@ def trigger_bot(background_tasks: BackgroundTasks, api_key: str = Security(api_k
     if api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Acesso negado. Chave inválida.")
         
-    # Executa a varredura em background agora (assim a resposta não dá timeout)
     background_tasks.add_task(run_bot_task_sync)
     return {"status": "success", "message": "O motor foi engatilhado! A varredura está rodando em segundo plano."}
 
