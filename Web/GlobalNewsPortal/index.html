@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global News Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 400px),
+                              radial-gradient(circle at bottom left, rgba(147, 51, 234, 0.15), transparent 400px);
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: -webkit-linear-gradient(45deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .news-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .news-source {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .news-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .news-title a {
+            color: var(--text-main);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .news-title a:hover {
+            color: var(--accent);
+        }
+
+        .news-summary {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .news-date {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Loading Skeleton */
+        .loading {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 50px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Global News Portal</h1>
+            <p class="subtitle">Seu radar inteligente de atualizações mundiais em tempo real.</p>
+        </header>
+
+        <main id="news-container" class="news-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Sincronizando com o motor de inteligência...</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Conecta com a API (Camada 3) que criamos no Python
+        const API_URL = "http://127.0.0.1:8000/api/news";
+
+        async function fetchNews() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                if(data.status === 'success') {
+                    renderNews(data.data);
+                } else {
+                    showError("Falha ao ler os dados do banco.");
+                }
+            } catch (error) {
+                showError("A API está desligada. Inicie o api.py primeiro.");
+            }
+        }
+
+        function renderNews(articles) {
+            const container = document.getElementById('news-container');
+            container.innerHTML = ''; // Limpa o loading
+
+            if(articles.length === 0) {
+                container.innerHTML = '<div class="loading">Nenhuma notícia encontrada no banco de dados ainda. O robô precisa rodar primeiro.</div>';
+                return;
+            }
+
+            articles.forEach(art => {
+                const date = new Date(art.published_at).toLocaleString('pt-BR');
+                
+                const card = document.createElement('div');
+                card.className = 'news-card';
+                card.innerHTML = `
+                    <div class="news-source">${art.source}</div>
+                    <h2 class="news-title"><a href="${art.link}" target="_blank">${art.title}</a></h2>
+                    <p class="news-summary">${art.summary}</p>
+                    <div class="news-date">Capturado em: ${date}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function showError(msg) {
+            document.getElementById('news-container').innerHTML = `<div class="loading" style="color:#ef4444">${msg}</div>`;
+        }
+
+        // Inicia a busca
+        fetchNews();
+    </script>
+</body>
+</html>
