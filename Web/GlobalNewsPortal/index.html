@@ -319,12 +319,12 @@
         </div>
 
         <div class="categories" id="categories-container">
-            <button class="cat-btn active" onclick="loadNews()">Últimas Notícias</button>
-            <button class="cat-btn" onclick="loadNews('Criptomoedas')">Criptomoedas</button>
-            <button class="cat-btn" onclick="loadNews('Negócios')">Negócios</button>
-            <button class="cat-btn" onclick="loadNews('Inteligência Artificial')">IA & Tech</button>
-            <button class="cat-btn" onclick="loadNews('Global')">Mundo</button>
-            <button class="cat-btn" onclick="loadNews('África')">África & Angola</button>
+            <button class="cat-btn active" id="btn-all" onclick="loadNews(null, this)">&#128250; Últimas Notícias</button>
+            <button class="cat-btn" onclick="loadNews('Criptomoedas', this)">&#8383; Criptomoedas</button>
+            <button class="cat-btn" onclick="loadNews('Negócios', this)">&#128200; Negócios</button>
+            <button class="cat-btn" onclick="loadNews('Inteligência Artificial', this)">&#129302; IA &amp; Tech</button>
+            <button class="cat-btn" onclick="loadNews('Global', this)">&#127760; Mundo</button>
+            <button class="cat-btn" onclick="loadNews('África', this)">&#127462;&#127476; África &amp; Angola</button>
         </div>
 
         <main id="news-container" class="news-grid">
@@ -358,8 +358,10 @@
             if(clickedBtn) clickedBtn.classList.add('active');
         }
 
-        async function loadNews(category = null) {
-            updateActiveCat(event ? event.target : document.querySelector('.cat-btn'));
+        async function loadNews(category = null, clickedBtn = null) {
+            // Se veio de um clique, atualiza o botão ativo
+            if (clickedBtn) updateActiveCat(clickedBtn);
+            
             const container = document.getElementById('news-container');
             container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando as últimas notícias...</p></div>';
             
@@ -379,7 +381,7 @@
                     showError("Falha ao ler os dados do banco.");
                 }
             } catch (error) {
-                showError("A API está desligada ou indisponível.");
+                showError("A API est\u00e1 desligada ou indispon\u00edvel.");
             }
         }
 
@@ -410,7 +412,7 @@
             container.innerHTML = ''; 
 
             if(!articles || articles.length === 0) {
-                container.innerHTML = `<div class="status-msg">${isSearch ? 'Nenhum resultado encontrado na web.' : 'Nenhuma notícia nessa categoria.'}</div>`;
+                container.innerHTML = `<div class="status-msg">${isSearch ? '&#128269; Nenhum resultado encontrado na web para essa busca.' : '&#128263; Nenhuma notícia nessa categoria ainda. O robô está a trabalhar!'}</div>`;
                 return;
             }
 
@@ -487,8 +489,8 @@
             document.getElementById('news-container').innerHTML = `<div class="status-msg" style="color:#ef4444">${msg}</div>`;
         }
 
-        // Initial load
-        window.onload = () => loadNews();
+        // Initial load — sem depender de event object
+        window.onload = () => loadNews(null, document.getElementById('btn-all'));
     </script>
 </body>
 </html>
