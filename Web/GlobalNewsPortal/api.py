@@ -1,4 +1,5 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Security
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
@@ -25,6 +26,11 @@ app.add_middleware(
 )
 
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Scripts', 'GlobalNewsBot', 'news.db'))
+HTML_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'index.html'))
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse(HTML_PATH)
 
 @app.get("/api/news")
 def get_news():
