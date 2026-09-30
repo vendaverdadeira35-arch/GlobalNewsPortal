@@ -16,11 +16,15 @@ from notifier import send_news_email
 HTML_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'index.html'))
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'Scripts', 'GlobalNewsBot', 'news.db'))
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
 USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_KEY)
 if USE_SUPABASE:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        print("Erro ao conectar ao Supabase:", e)
+        USE_SUPABASE = False
 
 def run_bot_task_sync():
     print("Iniciando varredura em background...")

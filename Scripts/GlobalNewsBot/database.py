@@ -1,16 +1,21 @@
 import os
 from supabase import create_client, Client
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
 
 # Verifica se está configurado para a nuvem
 USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_KEY)
 
 if USE_SUPABASE:
-    print("Conectado ao Supabase na nuvem!")
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-else:
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("Conectado ao Supabase na nuvem!")
+    except Exception as e:
+        print("Erro ao inicializar Supabase:", e)
+        USE_SUPABASE = False
+        
+if not USE_SUPABASE:
     print("Aviso: Chaves do Supabase não encontradas. Usando SQLite temporário local.")
     import sqlite3
     DB_PATH = os.path.join(os.path.dirname(__file__), 'news.db')
