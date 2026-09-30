@@ -114,7 +114,7 @@ def fetch_new_articles():
             
     # Persistência após tradução
     for art in new_articles:
-        mark_as_seen(art['id'], art['title'], art['link'], art['summary'], art['source'])
+        mark_as_seen(art['id'], art['title'], art['link'], art['summary'], art['source'], art['category'])
         
     return new_articles
 
