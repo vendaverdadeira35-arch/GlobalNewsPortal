@@ -128,6 +128,8 @@ def search_news(q: str = Query(..., min_length=2)):
 def read_article(url: str = Query(..., description="A URL completa do artigo")):
     try:
         content = read_full_article(url)
+        if content.startswith("Não foi possível"):
+            return {"status": "error", "message": content}
         return {"status": "success", "content": content}
     except Exception as e:
         return {"status": "error", "message": str(e)}

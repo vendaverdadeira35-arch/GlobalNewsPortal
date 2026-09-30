@@ -460,7 +460,13 @@
                 if(data.status === 'success') {
                     articleBody.innerText = data.content;
                 } else {
-                    articleBody.innerHTML = `<div style="color: #ef4444;">Erro ao processar o artigo: ${data.message}</div><br><a href="${url}" target="_blank" style="color:var(--accent);">Tentar abrir no site original</a>`;
+                    articleBody.innerHTML = `
+                        <div style="text-align:center; padding: 20px;">
+                            <h4 style="color: #ef4444; margin-bottom: 15px;">Acesso Bloqueado pela Fonte</h4>
+                            <p style="margin-bottom: 20px; font-family: 'Inter', sans-serif;">Este site possui um bloqueio de segurança (paywall ou anti-robô) que impediu nossa extração automática.</p>
+                            <a href="${url}" target="_blank" style="display: inline-block; background: var(--accent); color: white; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-family: 'Inter', sans-serif;">Ler no Site Original</a>
+                        </div>
+                    `;
                 }
             } catch (err) {
                 articleBody.innerHTML = `<div style="color: #ef4444;">Falha de comunicação com o servidor de tradução.</div>`;
