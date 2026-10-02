@@ -1,7 +1,9 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException, Security, Query
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Security, Query, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
+import shutil
+import uuid
 import os
 import sys
 import asyncio
@@ -67,6 +69,10 @@ from fastapi.staticfiles import StaticFiles
 
 app.mount("/css", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "css")), name="css")
 app.mount("/js", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "js")), name="js")
+
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/")
 def serve_frontend():
@@ -154,17 +160,39 @@ def serve_admin():
     return FileResponse(os.path.join(os.path.dirname(__file__), 'admin.html'))
 
 @app.post("/api/admin/post")
-def create_native_post(article: NativeArticle, api_key: str = Security(api_key_header)):
+async def create_native_post(
+    request: Request,
+    title: str = Form(...),
+    summary: str = Form(...),
+    content: str = Form(...),
+    category: str = Form("Geral"),
+    image_url: str = Form(""),
+    image_file: UploadFile = File(None)
+):
+    api_key = request.headers.get("X-API-KEY", "")
     if api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Acesso negado. Chave inválida.")
     
+    final_image_url = image_url
+    
+    # Se o admin enviou um arquivo de imagem
+    if image_file and image_file.filename:
+        ext = image_file.filename.split(".")[-1]
+        filename = f"{uuid.uuid4()}.{ext}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(image_file.file, buffer)
+            
+        final_image_url = f"/uploads/{filename}"
+    
     try:
         data = {
-            "title": article.title,
-            "summary": article.summary,
-            "content": article.content,
-            "image_url": article.image_url,
-            "category": article.category,
+            "title": title,
+            "summary": summary,
+            "content": content,
+            "image_url": final_image_url,
+            "category": category,
             "source": "Global News Original",
             "published_at": datetime.utcnow().isoformat(),
             "link": "internal"
