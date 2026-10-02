@@ -164,22 +164,8 @@ async function openReader(url, title) {
         return;
     }
 
-    articleBody.innerHTML = `<div>Processando texto do artigo original...</div>`;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    try {
-        const response = await fetch(`/api/read?url=${encodeURIComponent(url)}`);
-        const data = await response.json();
-        
-        if(data.status === 'success') {
-            articleBody.innerHTML = audioControls + `<div id="readableText"><p>${data.content.replace(/\n\n/g, '</p><p>')}</p></div>`;
-        } else {
-            articleBody.innerHTML = `<p style="color:red">Conteúdo bloqueado pela fonte. <a href="${url}" target="_blank">Acesse o site original</a></p>`;
-        }
-    } catch (err) {
-        articleBody.innerHTML = `<p style="color:red">Erro de servidor.</p>`;
-    }
+    // Se for uma notícia externa, abre diretamente na fonte original
+    window.open(url, '_blank');
 }
 
 function playAudio() {
