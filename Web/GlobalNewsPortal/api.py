@@ -157,7 +157,11 @@ class NativeArticle(BaseModel):
 
 @app.get("/admin")
 def serve_admin():
-    return FileResponse(os.path.join(os.path.dirname(__file__), 'admin.html'))
+    response = FileResponse(os.path.join(os.path.dirname(__file__), 'admin.html'))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 @app.post("/api/admin/post")
 async def create_native_post(
