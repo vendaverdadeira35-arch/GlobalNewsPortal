@@ -135,11 +135,30 @@ const modal = document.getElementById('readerModal');
 const modalTitle = document.getElementById('modalTitle');
 const articleBody = document.getElementById('articleBody');
 
+let currentUtterance = null;
+
 async function openReader(url, title) {
     modalTitle.innerText = title;
     
+    // Stop any ongoing audio
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    // Header for the article with Audio Controls
+    const audioControls = `
+        <div style="background: #f4f4f4; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px;">
+            <button id="btnPlayAudio" onclick="playAudio()" style="background: #e63946; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                🎧 Ouvir Artigo
+            </button>
+            <button id="btnStopAudio" onclick="stopAudio()" style="background: #666; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none;">
+                ⏹ Parar
+            </button>
+            <span id="audioStatus" style="font-size: 0.9rem; color: #666;"></span>
+        </div>
+    `;
+
     if (url.startsWith('internal_')) {
-        articleBody.innerHTML = `<p>${nativeNewsCache[url].replace(/\n/g, '<br>')}</p>`;
+        const rawContent = nativeNewsCache[url];
+        articleBody.innerHTML = audioControls + `<div id="readableText"><p>${rawContent.replace(/\n/g, '<br>')}</p></div>`;
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         return;
@@ -154,7 +173,7 @@ async function openReader(url, title) {
         const data = await response.json();
         
         if(data.status === 'success') {
-            articleBody.innerHTML = `<p>${data.content.replace(/\n\n/g, '</p><p>')}</p>`;
+            articleBody.innerHTML = audioControls + `<div id="readableText"><p>${data.content.replace(/\n\n/g, '</p><p>')}</p></div>`;
         } else {
             articleBody.innerHTML = `<p style="color:red">Conteúdo bloqueado pela fonte. <a href="${url}" target="_blank">Acesse o site original</a></p>`;
         }
@@ -163,7 +182,49 @@ async function openReader(url, title) {
     }
 }
 
+function playAudio() {
+    if (!('speechSynthesis' in window)) {
+        alert("Desculpe, seu navegador não suporta leitura em voz alta.");
+        return;
+    }
+    
+    const textElement = document.getElementById('readableText');
+    if (!textElement) return;
+    
+    const textToRead = textElement.innerText;
+    
+    window.speechSynthesis.cancel(); // Parar se já estiver lendo
+    
+    currentUtterance = new SpeechSynthesisUtterance(textToRead);
+    currentUtterance.lang = 'pt-BR';
+    currentUtterance.rate = 1.05; // Slightly faster for news
+    
+    currentUtterance.onstart = () => {
+        document.getElementById('btnPlayAudio').style.display = 'none';
+        document.getElementById('btnStopAudio').style.display = 'block';
+        document.getElementById('audioStatus').innerText = "Tocando agora...";
+    };
+    
+    currentUtterance.onend = () => {
+        document.getElementById('btnPlayAudio').style.display = 'block';
+        document.getElementById('btnStopAudio').style.display = 'none';
+        document.getElementById('audioStatus').innerText = "";
+    };
+
+    window.speechSynthesis.speak(currentUtterance);
+}
+
+function stopAudio() {
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+    document.getElementById('btnPlayAudio').style.display = 'block';
+    document.getElementById('btnStopAudio').style.display = 'none';
+    document.getElementById('audioStatus').innerText = "";
+}
+
 function closeModal() {
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
     modal.classList.remove('active');
     document.body.style.overflow = 'auto';
 }
