@@ -39,13 +39,16 @@
 
     <!-- Main Navigation -->
     <nav class="main-nav">
-        <div class="container nav-inner">
-            <a href="#" class="active" onclick="loadNews(null); return false;">HOME</a>
-            <a href="#" onclick="loadNews('Global'); return false;">MUNDO</a>
-            <a href="#" onclick="loadNews('África'); return false;">ÁFRICA</a>
-            <a href="#" onclick="loadNews('Inteligência Artificial'); return false;">TECNOLOGIA & IA</a>
-            <a href="#" onclick="loadNews('Negócios'); return false;">NEGÓCIOS</a>
-            <a href="#" onclick="loadNews('Criptomoedas'); return false;">CRIPTO</a>
+        <div class="container">
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i> MENU</button>
+            <div class="nav-inner" id="mainNav">
+                <a href="#" class="active" onclick="loadNews(null); return false;">HOME</a>
+                <a href="#" onclick="loadNews('Global'); return false;">MUNDO</a>
+                <a href="#" onclick="loadNews('África'); return false;">ÁFRICA</a>
+                <a href="#" onclick="loadNews('Inteligência Artificial'); return false;">TECNOLOGIA & IA</a>
+                <a href="#" onclick="loadNews('Negócios'); return false;">NEGÓCIOS</a>
+                <a href="#" onclick="loadNews('Criptomoedas'); return false;">CRIPTO</a>
+            </div>
         </div>
     </nav>
 
@@ -74,6 +77,10 @@
             <div id="news-container" class="news-list">
                 <div class="loading">Sincronizando com o motor de inteligência...</div>
             </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <button id="btnLoadMore" onclick="loadMoreNews()" style="background: #0d3b66; color: white; padding: 10px 30px; border: none; cursor: pointer; font-weight: bold; font-family: 'Oswald', sans-serif; text-transform: uppercase; display: none;">Carregar Mais Notícias</button>
+            </div>
 
         </div>
 
@@ -92,10 +99,15 @@
             </div>
 
             <div class="widget">
-                <div class="widget-title"><h4>MAIS POPULARES</h4></div>
-                <ul class="popular-list" id="popular-news">
-                    <li>Aguarde...</li>
-                </ul>
+                <div class="widget-title"><h4>TAGS POPULARES</h4></div>
+                <div class="tags-container">
+                    <span class="tag" onclick="handleSearch('IA')">#IA</span>
+                    <span class="tag" onclick="handleSearch('Angola')">#Angola</span>
+                    <span class="tag" onclick="handleSearch('Bitcoin')">#Bitcoin</span>
+                    <span class="tag" onclick="handleSearch('Mercado')">#Mercado</span>
+                    <span class="tag" onclick="handleSearch('Eleições')">#Eleições</span>
+                    <span class="tag" onclick="handleSearch('Futebol')">#Futebol</span>
+                </div>
             </div>
 
             <div class="widget">

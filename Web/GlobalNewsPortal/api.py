@@ -79,11 +79,11 @@ def serve_frontend():
     return FileResponse(HTML_PATH)
 
 @app.get("/api/news")
-def get_news(category: str = Query(None)):
+def get_news(category: str = Query(None), offset: int = Query(0, ge=0)):
     try:
         news_list = []
         if USE_SUPABASE:
-            query = supabase.table("seen_news").select("*").order("published_at", desc=True).limit(50)
+            query = supabase.table("seen_news").select("*").order("published_at", desc=True).limit(50).offset(offset)
             if category:
                 query = query.eq("category", category)
             response = query.execute()
@@ -104,9 +104,9 @@ def get_news(category: str = Query(None)):
             cursor = conn.cursor()
             
             if category:
-                cursor.execute("SELECT * FROM seen_news WHERE category = ? ORDER BY published_at DESC LIMIT 50", (category,))
+                cursor.execute("SELECT * FROM seen_news WHERE category = ? ORDER BY published_at DESC LIMIT 50 OFFSET ?", (category, offset))
             else:
-                cursor.execute("SELECT * FROM seen_news ORDER BY published_at DESC LIMIT 50")
+                cursor.execute("SELECT * FROM seen_news ORDER BY published_at DESC LIMIT 50 OFFSET ?", (offset,))
             rows = cursor.fetchall()
             
             for row in rows:

@@ -3,15 +3,20 @@
 let nativeNewsCache = {};
 
 async function loadNews(category = null) {
+    currentCategory = category;
+    currentOffset = 0;
+    
     document.querySelectorAll('.main-nav a').forEach(a => a.classList.remove('active'));
-    if(event && event.target) event.target.classList.add('active');
+    if(event && event.target && event.target.tagName === 'A') event.target.classList.add('active');
     
     const container = document.getElementById('news-container');
     const featured = document.getElementById('featured-news');
     const ticker = document.getElementById('ticker-text');
     const popular = document.getElementById('popular-news');
+    const btnLoadMore = document.getElementById('btnLoadMore');
 
     container.innerHTML = '<div class="loading">Carregando notícias...</div>';
+    if(btnLoadMore) btnLoadMore.style.display = 'none';
     
     try {
         const url = category ? `/api/news?category=${encodeURIComponent(category)}` : '/api/news';
@@ -272,6 +277,93 @@ async function subscribeNewsletter() {
     } finally {
         btn.disabled = false;
         btn.innerText = 'Inscrever-me';
+    }
+}
+
+// State for pagination
+let currentCategory = null;
+let currentOffset = 0;
+const PAGE_SIZE = 50;
+
+function toggleMobileMenu() {
+    const nav = document.getElementById('mainNav');
+    nav.classList.toggle('show');
+}
+
+async function loadMoreNews() {
+    const btn = document.getElementById('btnLoadMore');
+    btn.innerText = 'Carregando...';
+    btn.disabled = true;
+    
+    currentOffset += PAGE_SIZE;
+    
+    try {
+        const url = currentCategory ? `/api/news?category=${encodeURIComponent(currentCategory)}&offset=${currentOffset}` : `/api/news?offset=${currentOffset}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if(data.status === 'success' && data.data.length > 0) {
+            renderAdditionalCards(data.data);
+            btn.innerText = 'Carregar Mais Notícias';
+            btn.disabled = false;
+        } else {
+            btn.innerText = 'Fim das Notícias';
+            btn.disabled = true;
+            btn.style.background = '#666';
+        }
+    } catch (error) {
+        btn.innerText = 'Erro. Tentar Novamente';
+        btn.disabled = false;
+    }
+}
+
+function renderAdditionalCards(articles) {
+    const container = document.getElementById('news-container');
+    for(let i = 0; i < articles.length; i++) {
+        const art = articles[i];
+        let dateStr = art.published_at !== 'Agora' ? new Date(art.published_at).toLocaleDateString('pt-BR') : 'Hoje';
+        
+        const card = document.createElement('article');
+        card.className = 'news-item';
+        card.style.display = 'flex';
+        card.style.gap = '15px';
+        card.style.marginBottom = '20px';
+        
+        let imgBlock = '';
+        if (art.image_url) {
+            imgBlock = `
+            <div style="flex: 0 0 180px;">
+                <img src="${art.image_url}" alt="Notícia" style="width:100%; height:120px; object-fit:cover; border-radius:4px;">
+            </div>`;
+        }
+        
+        card.innerHTML = `
+            ${imgBlock}
+            <div style="flex: 1;">
+                <div class="news-meta">${art.source || 'Global'} • ${dateStr}</div>
+                <h3 class="news-title" style="font-size:1.15rem; margin-bottom:8px;"><a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}'); return false;">${art.title}</a></h3>
+                <p class="news-desc" style="font-size:0.95rem; line-height:1.4;">${art.summary}</p>
+                <div class="news-footer">
+                    <a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}')" style="font-weight:bold; font-size:0.85rem; padding: 5px 0;">Ler mais ></a>
+                    <div class="share-icons">
+                        <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(art.title + ' ' + (art.link.startsWith('internal') ? window.location.href : art.link))}" target="_blank" style="color:#25D366; font-size:1.2rem; margin-right:5px;"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(art.link.startsWith('internal') ? window.location.href : art.link)}&text=${encodeURIComponent(art.title)}" target="_blank" style="color:#1DA1F2; font-size:1.2rem;"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+    
+    const btnLoadMore = document.getElementById('btnLoadMore');
+    if (btnLoadMore && !isSearch) {
+        if (articles.length === 50) {
+            btnLoadMore.style.display = 'inline-block';
+            btnLoadMore.innerText = 'Carregar Mais Notícias';
+            btnLoadMore.disabled = false;
+        } else {
+            btnLoadMore.style.display = 'none';
+        }
     }
 }
 
