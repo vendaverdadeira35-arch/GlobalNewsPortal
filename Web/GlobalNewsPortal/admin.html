@@ -103,7 +103,8 @@
                 } else {
                     msg.style.color = '#721c24';
                     msg.style.background = '#f8d7da';
-                    msg.innerText = "❌ Erro: " + data.message;
+                    const errorMessage = data.message || data.detail || "Erro desconhecido.";
+                    msg.innerText = "❌ Erro: " + (typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage);
                 }
             } catch (error) {
                 msg.style.color = '#721c24';
