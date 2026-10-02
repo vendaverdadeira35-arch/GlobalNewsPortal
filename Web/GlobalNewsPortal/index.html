@@ -3,329 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global News Portal V3.0</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --modal-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 400px),
-                              radial-gradient(circle at bottom left, rgba(147, 51, 234, 0.15), transparent 400px);
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            margin-top: 20px;
-        }
-
-        h1 {
-            font-weight: 700;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: -webkit-linear-gradient(45deg, #60a5fa, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        /* Search Bar */
-        .search-container {
-            display: flex;
-            margin-bottom: 30px;
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        #searchInput {
-            width: 100%;
-            max-width: 600px;
-            padding: 15px 20px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s;
-        }
-        
-        #searchInput:focus {
-            border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-search {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 0 25px;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .btn-search:hover {
-            background: var(--accent-hover);
-        }
-
-        /* Categories */
-        .categories {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        
-        .cat-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        
-        .cat-btn:hover, .cat-btn.active {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: var(--accent);
-            color: #fff;
-        }
-
-        /* Grid */
-        .news-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .news-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 25px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .news-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .news-source {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent);
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .news-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            line-height: 1.4;
-            color: var(--text-main);
-        }
-
-        .news-summary {
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            flex-grow: 1;
-        }
-        
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .news-date {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-        
-        .btn-read {
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        
-        .btn-read:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        /* Modal Reader Mode */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .modal-content {
-            background: var(--modal-bg);
-            width: 90%;
-            max-width: 700px;
-            height: 85vh;
-            border-radius: 20px;
-            overflow-y: auto;
-            position: relative;
-            transform: translateY(20px);
-            transition: transform 0.3s;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        }
-        
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-header {
-            position: sticky;
-            top: 0;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-        
-        .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        
-        .close-btn:hover {
-            color: #fff;
-        }
-        
-        .article-body {
-            padding: 40px;
-            font-family: 'Merriweather', serif;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #cbd5e1;
-            white-space: pre-wrap;
-        }
-
-        /* Loading Skeleton */
-        .loading, .status-msg {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            padding: 50px;
-            grid-column: 1 / -1;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--accent);
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <title>Global News Portal | Motor de Busca</title>
+    <meta name="description" content="O maior motor de busca global de notícias 100% em Português.">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
+    <nav>
+        <div class="logo">
+            <svg width="24" height="24" fill="none" stroke="url(#grad)" stroke-width="2" viewBox="0 0 24 24">
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#60a5fa" />
+                        <stop offset="100%" stop-color="#c084fc" />
+                    </linearGradient>
+                </defs>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+            </svg>
+            GlobalNews<span>Portal</span>
+        </div>
+    </nav>
+
     <div class="container">
         <header>
-            <h1>Global News Portal</h1>
-            <p class="subtitle">O Maior Motor de Busca Global 100% em Português</p>
+            <h1>O Mundo em <span>Português</span></h1>
+            <p class="subtitle">Pesquise qualquer notícia, artigo ou novidade na web. O nosso motor de inteligência artificial traduz tudo para você em tempo real.</p>
         </header>
 
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Pesquisar qualquer notícia na web (Ex: Inteligência Artificial, Solana, Angola...)" onkeypress="if(event.key === 'Enter') handleSearch()">
-            <button class="btn-search" onclick="handleSearch()">Buscar Na Web</button>
+        <div class="search-wrapper">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Pesquisar qualquer assunto (Ex: Solana, Inteligência Artificial...)">
+                <button class="btn-search" onclick="handleSearch()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Buscar
+                </button>
+            </div>
         </div>
 
-        <div class="categories" id="categories-container">
-            <button class="cat-btn active" id="btn-all" onclick="loadNews(null, this)">&#128250; Últimas Notícias</button>
-            <button class="cat-btn" onclick="loadNews('Criptomoedas', this)">&#8383; Criptomoedas</button>
-            <button class="cat-btn" onclick="loadNews('Negócios', this)">&#128200; Negócios</button>
-            <button class="cat-btn" onclick="loadNews('Inteligência Artificial', this)">&#129302; IA &amp; Tech</button>
-            <button class="cat-btn" onclick="loadNews('Global', this)">&#127760; Mundo</button>
-            <button class="cat-btn" onclick="loadNews('África', this)">&#127462;&#127476; África &amp; Angola</button>
-        </div>
+        <nav class="categories" id="categories-container" aria-label="Filtro de Categorias">
+            <button class="cat-btn active" id="btn-all" onclick="loadNews(null, this)">Últimas Notícias</button>
+            <button class="cat-btn" onclick="loadNews('Criptomoedas', this)">Criptomoedas</button>
+            <button class="cat-btn" onclick="loadNews('Negócios', this)">Negócios</button>
+            <button class="cat-btn" onclick="loadNews('Inteligência Artificial', this)">IA &amp; Tech</button>
+            <button class="cat-btn" onclick="loadNews('Global', this)">Mundo</button>
+            <button class="cat-btn" onclick="loadNews('África', this)">África &amp; Angola</button>
+        </nav>
 
         <main id="news-container" class="news-grid">
             <div class="loading">
@@ -336,161 +60,21 @@
     </div>
 
     <!-- Modal for reading full article -->
-    <div class="modal-overlay" id="readerModal">
+    <div class="modal-overlay" id="readerModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle" style="font-size: 1.1rem; color: #fff;">Lendo Artigo...</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <h3 id="modalTitle">Lendo Artigo...</h3>
+                <button class="close-btn" onclick="closeModal()" aria-label="Fechar modal">&times;</button>
             </div>
             <div class="article-body" id="articleBody">
                 <div style="text-align: center; padding: 50px;">
                     <div class="spinner"></div>
-                    <p style="font-family: 'Inter', sans-serif;">O nosso robô está extraindo e traduzindo o artigo completo da fonte original para o Português. Aguarde uns segundos...</p>
+                    <p style="font-family: 'Inter', sans-serif; color: var(--text-muted);">Iniciando o modo leitura premium...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Update active state of category buttons
-        function updateActiveCat(clickedBtn) {
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-            if(clickedBtn) clickedBtn.classList.add('active');
-        }
-
-        async function loadNews(category = null, clickedBtn = null) {
-            // Se veio de um clique, atualiza o botão ativo
-            if (clickedBtn) updateActiveCat(clickedBtn);
-            
-            const container = document.getElementById('news-container');
-            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando as últimas notícias...</p></div>';
-            
-            try {
-                const url = category ? `/api/news?category=${encodeURIComponent(category)}` : '/api/news';
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if(data.status === 'success') {
-                    let articles = data.data;
-                    if(category) {
-                        // Faz filtro local caso a API retorne tudo (compatibilidade com SQLite)
-                        articles = articles.filter(a => a.category === category || a.source.includes(category));
-                    }
-                    renderNews(articles);
-                } else {
-                    showError("Falha ao ler os dados do banco.");
-                }
-            } catch (error) {
-                showError("A API est\u00e1 desligada ou indispon\u00edvel.");
-            }
-        }
-
-        async function handleSearch() {
-            const query = document.getElementById('searchInput').value.trim();
-            if(!query) return;
-            
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-            const container = document.getElementById('news-container');
-            container.innerHTML = `<div class="loading"><div class="spinner"></div><p>O Motor de Busca está varrendo a internet por "${query}" e traduzindo os resultados. Aguarde...</p></div>`;
-            
-            try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if(data.status === 'success') {
-                    renderNews(data.data, true);
-                } else {
-                    showError("Erro na pesquisa: " + data.message);
-                }
-            } catch (error) {
-                showError("Erro de conexão ao realizar a pesquisa web.");
-            }
-        }
-
-        function renderNews(articles, isSearch = false) {
-            const container = document.getElementById('news-container');
-            container.innerHTML = ''; 
-
-            if(!articles || articles.length === 0) {
-                container.innerHTML = `<div class="status-msg">${isSearch ? '&#128269; Nenhum resultado encontrado na web para essa busca.' : '&#128263; Nenhuma notícia nessa categoria ainda. O robô está a trabalhar!'}</div>`;
-                return;
-            }
-
-            articles.forEach(art => {
-                let dateStr = art.published_at;
-                try {
-                    if(dateStr !== 'Agora') {
-                        dateStr = new Date(art.published_at).toLocaleString('pt-BR');
-                    }
-                } catch(e) {}
-                
-                const card = document.createElement('div');
-                card.className = 'news-card';
-                card.innerHTML = `
-                    <div class="news-source">${art.source || 'Internet'}</div>
-                    <h2 class="news-title">${art.title}</h2>
-                    <p class="news-summary">${art.summary}</p>
-                    <div class="card-footer">
-                        <div class="news-date">${dateStr}</div>
-                        <button class="btn-read" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}')">Ler Artigo Completo</button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Modal Reader Logic
-        const modal = document.getElementById('readerModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const articleBody = document.getElementById('articleBody');
-
-        async function openReader(url, title) {
-            modalTitle.innerText = title;
-            articleBody.innerHTML = `
-                <div style="text-align: center; padding: 50px;">
-                    <div class="spinner"></div>
-                    <p style="font-family: 'Inter', sans-serif;">O nosso robô está navegando até a fonte original, extraindo e traduzindo o artigo completo para o Português. Aguarde alguns segundos...</p>
-                </div>
-            `;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // block scroll
-            
-            try {
-                const response = await fetch(`/api/read?url=${encodeURIComponent(url)}`);
-                const data = await response.json();
-                
-                if(data.status === 'success') {
-                    articleBody.innerText = data.content;
-                } else {
-                    articleBody.innerHTML = `
-                        <div style="text-align:center; padding: 20px;">
-                            <h4 style="color: #ef4444; margin-bottom: 15px;">Acesso Bloqueado pela Fonte</h4>
-                            <p style="margin-bottom: 20px; font-family: 'Inter', sans-serif;">Este site possui um bloqueio de segurança (paywall ou anti-robô) que impediu nossa extração automática.</p>
-                            <a href="${url}" target="_blank" style="display: inline-block; background: var(--accent); color: white; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-family: 'Inter', sans-serif;">Ler no Site Original</a>
-                        </div>
-                    `;
-                }
-            } catch (err) {
-                articleBody.innerHTML = `<div style="color: #ef4444;">Falha de comunicação com o servidor de tradução.</div>`;
-            }
-        }
-
-        function closeModal() {
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Close modal on outside click
-        modal.addEventListener('click', (e) => {
-            if(e.target === modal) closeModal();
-        });
-
-        function showError(msg) {
-            document.getElementById('news-container').innerHTML = `<div class="status-msg" style="color:#ef4444">${msg}</div>`;
-        }
-
-        // Initial load — sem depender de event object
-        window.onload = () => loadNews(null, document.getElementById('btn-all'));
-    </script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
