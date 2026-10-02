@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global News Portal - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #0d3b66; border-bottom: 2px solid #e63946; padding-bottom: 10px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input[type="text"], input[type="password"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        textarea { height: 150px; resize: vertical; }
+        .btn { background: #0d3b66; color: #fff; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-radius: 4px; }
+        .btn:hover { background: #e63946; }
+        #message { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Postar Notícia Própria</h1>
+        <form id="postForm">
+            <div class="form-group">
+                <label>Chave de Admin (X-API-KEY)</label>
+                <input type="password" id="apiKey" required placeholder="Sua chave secreta (ex: sua_chave_secreta_123)">
+            </div>
+            <div class="form-group">
+                <label>Título da Notícia</label>
+                <input type="text" id="title" required placeholder="Ex: Novo Acordo Comercial Firmado">
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="category">
+                    <option value="Global">Mundo</option>
+                    <option value="África">África & Angola</option>
+                    <option value="Inteligência Artificial">Tecnologia & IA</option>
+                    <option value="Negócios">Negócios</option>
+                    <option value="Criptomoedas">Criptomoedas</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>URL da Imagem de Capa (Opcional)</label>
+                <input type="text" id="image_url" placeholder="https://exemplo.com/imagem.jpg">
+            </div>
+            <div class="form-group">
+                <label>Resumo (O que vai aparecer na capa do site)</label>
+                <textarea id="summary" required placeholder="Um breve resumo em 2-3 linhas..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Conteúdo Completo (Aceita HTML/Markdown basico)</label>
+                <textarea id="content" required placeholder="Escreva o texto completo da notícia aqui..."></textarea>
+            </div>
+            <button type="submit" class="btn">Publicar Notícia no Portal</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('message');
+            btn.disabled = true;
+            btn.innerText = "Publicando...";
+            msg.innerHTML = "";
+
+            const payload = {
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                image_url: document.getElementById('image_url').value,
+                summary: document.getElementById('summary').value,
+                content: document.getElementById('content').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': document.getElementById('apiKey').value
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    msg.style.color = 'green';
+                    msg.innerText = "Notícia publicada com sucesso! Ela já está visível no site principal.";
+                    e.target.reset(); // Limpa o formulário, mas não a chave
+                } else {
+                    msg.style.color = 'red';
+                    msg.innerText = "Erro: " + data.message;
+                }
+            } catch (error) {
+                msg.style.color = 'red';
+                msg.innerText = "Erro de conexão com a API.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Publicar Notícia no Portal";
+            }
+        });
+    </script>
+</body>
+</html>

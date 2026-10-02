@@ -139,6 +139,79 @@ def read_article(url: str = Query(..., description="A URL completa do artigo")):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+from pydantic import BaseModel
+from datetime import datetime
+
+class NativeArticle(BaseModel):
+    title: str
+    summary: str
+    content: str
+    image_url: str = ""
+    category: str = "Geral"
+
+@app.get("/admin")
+def serve_admin():
+    return FileResponse(os.path.join(os.path.dirname(__file__), 'admin.html'))
+
+@app.post("/api/admin/post")
+def create_native_post(article: NativeArticle, api_key: str = Security(api_key_header)):
+    if api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Acesso negado. Chave inválida.")
+    
+    try:
+        data = {
+            "title": article.title,
+            "summary": article.summary,
+            "content": article.content,
+            "image_url": article.image_url,
+            "category": article.category,
+            "source": "Global News Original",
+            "published_at": datetime.utcnow().isoformat(),
+            "link": "internal"
+        }
+        
+        if USE_SUPABASE:
+            supabase.table("native_news").insert(data).execute()
+        else:
+            import sqlite3
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS native_news 
+                              (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, summary TEXT, content TEXT, image_url TEXT, category TEXT, source TEXT, published_at TEXT, link TEXT)''')
+            cursor.execute('''INSERT INTO native_news (title, summary, content, image_url, category, source, published_at, link) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', 
+                           (data['title'], data['summary'], data['content'], data['image_url'], data['category'], data['source'], data['published_at'], data['link']))
+            conn.commit()
+            conn.close()
+            
+        return {"status": "success", "message": "Artigo publicado com sucesso!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/native_news")
+def get_native_news():
+    try:
+        news_list = []
+        if USE_SUPABASE:
+            response = supabase.table("native_news").select("*").order("published_at", desc=True).limit(20).execute()
+            news_list = response.data
+        else:
+            import sqlite3
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS native_news 
+                              (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, summary TEXT, content TEXT, image_url TEXT, category TEXT, source TEXT, published_at TEXT, link TEXT)''')
+            cursor.execute("SELECT * FROM native_news ORDER BY published_at DESC LIMIT 20")
+            rows = cursor.fetchall()
+            for row in rows:
+                news_list.append(dict(row))
+            conn.close()
+            
+        return {"status": "success", "data": news_list}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/trigger")
 def trigger_bot(background_tasks: BackgroundTasks, api_key: str = Security(api_key_header)):
     if api_key != API_KEY:

@@ -1,7 +1,8 @@
 // Global News Portal - Magazine Logic
 
+let nativeNewsCache = {};
+
 async function loadNews(category = null) {
-    // Update nav active state
     document.querySelectorAll('.main-nav a').forEach(a => a.classList.remove('active'));
     if(event && event.target) event.target.classList.add('active');
     
@@ -14,14 +15,36 @@ async function loadNews(category = null) {
     
     try {
         const url = category ? `/api/news?category=${encodeURIComponent(category)}` : '/api/news';
-        const response = await fetch(url);
-        const data = await response.json();
         
-        if(data.status === 'success') {
-            let articles = data.data;
+        // Fetch both scraped and native news in parallel
+        const [resScraped, resNative] = await Promise.all([
+            fetch(url),
+            fetch('/api/native_news')
+        ]);
+        
+        const dataScraped = await resScraped.json();
+        const dataNative = await resNative.json();
+        
+        if(dataScraped.status === 'success') {
+            let articles = dataScraped.data;
+            
+            // Mix with native news
+            if (dataNative.status === 'success') {
+                let nativeArticles = dataNative.data;
+                nativeArticles.forEach((art, index) => {
+                    art.link = `internal_${index}`;
+                    nativeNewsCache[art.link] = art.content;
+                });
+                articles = [...nativeArticles, ...articles];
+            }
+
             if(category) {
                 articles = articles.filter(a => a.category === category || a.source.includes(category));
             }
+            
+            // Sort by date descending
+            articles.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+            
             renderMagazineLayout(articles, ticker, featured, container, popular);
         } else {
             container.innerHTML = `<div style="color:red">Falha ao ler os dados.</div>`;
@@ -59,16 +82,16 @@ function renderMagazineLayout(articles, ticker, featured, container, popular, is
         return;
     }
 
-    // 1. Ticker (Top 5 titles)
     if(ticker) {
         ticker.innerHTML = articles.slice(0, 5).map(a => `<strong>[${a.source || 'Breaking'}]</strong> ${a.title}`).join(' &nbsp;&nbsp;|&nbsp;&nbsp; ');
     }
 
-    // 2. Featured News (1st article)
     if(featured && !isSearch) {
         const feat = articles[0];
         let dateStr = feat.published_at !== 'Agora' ? new Date(feat.published_at).toLocaleDateString('pt-BR') : 'Hoje';
+        let imgHtml = feat.image_url ? `<img src="${feat.image_url}" alt="Destaque" style="width:100%; height:auto; margin-bottom:15px; border-radius:4px;">` : '';
         featured.innerHTML = `
+            ${imgHtml}
             <div class="news-meta">${feat.category || feat.source || 'Destaque'} • ${dateStr}</div>
             <h2><a href="#" onclick="openReader('${feat.link}', '${feat.title.replace(/'/g, "\\'")}'); return false;">${feat.title}</a></h2>
             <p>${feat.summary}</p>
@@ -76,7 +99,6 @@ function renderMagazineLayout(articles, ticker, featured, container, popular, is
         `;
     }
 
-    // 3. Grid / List News
     container.innerHTML = '';
     const startIndex = isSearch ? 0 : 1;
     for(let i = startIndex; i < articles.length; i++) {
@@ -92,7 +114,7 @@ function renderMagazineLayout(articles, ticker, featured, container, popular, is
             <div class="news-footer">
                 <a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}')" style="font-weight:bold; font-size:0.85rem;">Ler mais ></a>
                 <div class="share-icons">
-                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(art.title + ' ' + art.link)}" target="_blank">📲</a>
+                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(art.title + ' ' + (art.link.startsWith('internal') ? window.location.href : art.link))}" target="_blank">📲</a>
                 </div>
             </div>
         `;
@@ -115,6 +137,14 @@ const articleBody = document.getElementById('articleBody');
 
 async function openReader(url, title) {
     modalTitle.innerText = title;
+    
+    if (url.startsWith('internal_')) {
+        articleBody.innerHTML = `<p>${nativeNewsCache[url].replace(/\n/g, '<br>')}</p>`;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        return;
+    }
+
     articleBody.innerHTML = `<div>Processando texto do artigo original...</div>`;
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
