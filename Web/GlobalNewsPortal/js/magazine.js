@@ -232,6 +232,49 @@ function closeModal() {
     document.body.style.overflow = 'auto';
 }
 
+async function subscribeNewsletter() {
+    const emailInput = document.getElementById('newsletterEmail');
+    const msg = document.getElementById('newsletterMsg');
+    const btn = document.getElementById('btnSubscribe');
+    const email = emailInput.value.trim();
+
+    if(!email || !email.includes('@')) {
+        msg.style.color = '#e63946';
+        msg.innerText = 'Por favor, insira um e-mail válido.';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'Enviando...';
+    msg.innerText = '';
+
+    try {
+        const formData = new FormData();
+        formData.append('email', email);
+
+        const response = await fetch('/api/subscribe', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            msg.style.color = '#155724';
+            msg.innerText = 'Inscrição confirmada com sucesso!';
+            emailInput.value = '';
+        } else {
+            msg.style.color = '#e63946';
+            msg.innerText = data.message;
+        }
+    } catch (error) {
+        msg.style.color = '#e63946';
+        msg.innerText = 'Erro ao conectar com o servidor.';
+    } finally {
+        btn.disabled = false;
+        btn.innerText = 'Inscrever-me';
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     loadNews();
 });

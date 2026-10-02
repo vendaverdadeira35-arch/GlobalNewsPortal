@@ -240,6 +240,41 @@ def get_native_news():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+@app.post("/api/subscribe")
+async def subscribe_newsletter(email: str = Form(...)):
+    try:
+        data = {
+            "email": email,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        if USE_SUPABASE:
+            # Tenta inserir. O Supabase pode falhar se a tabela não existir,
+            # então precisamos que o usuário saiba que ele deve criar a tabela.
+            supabase.table("subscribers").insert(data).execute()
+        else:
+            import sqlite3
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS subscribers 
+                              (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, created_at TEXT)''')
+            # Ignora inserções duplicadas do mesmo email no SQLite
+            cursor.execute('''INSERT OR IGNORE INTO subscribers (email, created_at) VALUES (?, ?)''', 
+                           (email, data['created_at']))
+            conn.commit()
+            conn.close()
+            
+        return {"status": "success", "message": "Inscrito com sucesso!"}
+    except Exception as e:
+        # Se for erro de tabela inexistente no Supabase, avisamos de forma amigável
+        if "relation" in str(e).lower() and "does not exist" in str(e).lower():
+            return {"status": "error", "message": "O banco de dados precisa ser configurado (tabela 'subscribers' ausente)."}
+        # Se for erro de duplicidade (Supabase)
+        if "duplicate key" in str(e).lower():
+             return {"status": "success", "message": "Este e-mail já está inscrito!"}
+             
+        return {"status": "error", "message": "Erro ao salvar e-mail."}
+
 @app.get("/api/trigger")
 def trigger_bot(background_tasks: BackgroundTasks, api_key: str = Security(api_key_header)):
     if api_key != API_KEY:
