@@ -89,7 +89,14 @@ function renderMagazineLayout(articles, ticker, featured, container, popular, is
     if(featured && !isSearch) {
         const feat = articles[0];
         let dateStr = feat.published_at !== 'Agora' ? new Date(feat.published_at).toLocaleDateString('pt-BR') : 'Hoje';
-        let imgHtml = feat.image_url ? `<img src="${feat.image_url}" alt="Destaque" style="width:100%; height:auto; margin-bottom:15px; border-radius:4px;">` : '';
+        
+        let cardImage = feat.image_url;
+        if (!cardImage) {
+            const seed = encodeURIComponent(feat.title.substring(0, 15).replace(/\s/g, ''));
+            cardImage = `https://picsum.photos/seed/${seed}/800/400`;
+        }
+        
+        let imgHtml = `<img src="${cardImage}" alt="Destaque" style="width:100%; height:auto; max-height:400px; object-fit:cover; margin-bottom:15px; border-radius:4px;">`;
         featured.innerHTML = `
             ${imgHtml}
             <div class="news-meta">${feat.category || feat.source || 'Destaque'} • ${dateStr}</div>
@@ -105,16 +112,33 @@ function renderMagazineLayout(articles, ticker, featured, container, popular, is
         const art = articles[i];
         let dateStr = art.published_at !== 'Agora' ? new Date(art.published_at).toLocaleDateString('pt-BR') : 'Hoje';
         
+        // Generate a consistent placeholder image if none exists
+        let cardImage = art.image_url;
+        if (!cardImage) {
+            const seed = encodeURIComponent(art.title.substring(0, 15).replace(/\s/g, ''));
+            cardImage = `https://picsum.photos/seed/${seed}/400/250`;
+        }
+        
         const card = document.createElement('article');
         card.className = 'news-item';
+        card.style.display = 'flex';
+        card.style.gap = '15px';
+        card.style.marginBottom = '20px';
+        
         card.innerHTML = `
-            <div class="news-meta">${art.source || 'Global'} • ${dateStr}</div>
-            <h3 class="news-title"><a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}'); return false;">${art.title}</a></h3>
-            <p class="news-desc">${art.summary}</p>
-            <div class="news-footer">
-                <a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}')" style="font-weight:bold; font-size:0.85rem;">Ler mais ></a>
-                <div class="share-icons">
-                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(art.title + ' ' + (art.link.startsWith('internal') ? window.location.href : art.link))}" target="_blank">📲</a>
+            <div style="flex: 0 0 150px;">
+                <img src="${cardImage}" alt="Notícia" style="width:100%; height:100px; object-fit:cover; border-radius:4px;">
+            </div>
+            <div style="flex: 1;">
+                <div class="news-meta">${art.source || 'Global'} • ${dateStr}</div>
+                <h3 class="news-title" style="font-size:1.1rem;"><a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}'); return false;">${art.title}</a></h3>
+                <p class="news-desc" style="font-size:0.9rem;">${art.summary}</p>
+                <div class="news-footer">
+                    <a href="#" onclick="openReader('${art.link}', '${art.title.replace(/'/g, "\\'")}')" style="font-weight:bold; font-size:0.85rem;">Ler mais ></a>
+                    <div class="share-icons">
+                        <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(art.title + ' ' + (art.link.startsWith('internal') ? window.location.href : art.link))}" target="_blank" style="color:#25D366; font-size:1.2rem; margin-right:5px;"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(art.link.startsWith('internal') ? window.location.href : art.link)}&text=${encodeURIComponent(art.title)}" target="_blank" style="color:#1DA1F2; font-size:1.2rem;"><i class="fab fa-twitter"></i></a>
+                    </div>
                 </div>
             </div>
         `;
