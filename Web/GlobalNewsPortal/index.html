@@ -3,78 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global News Portal | Motor de Busca</title>
-    <meta name="description" content="O maior motor de busca global de notícias 100% em Português.">
-    <link rel="stylesheet" href="/css/style.css">
+    <title>Global News Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/magazine.css">
 </head>
 <body>
 
-    <nav>
-        <div class="logo">
-            <svg width="24" height="24" fill="none" stroke="url(#grad)" stroke-width="2" viewBox="0 0 24 24">
-                <defs>
-                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#60a5fa" />
-                        <stop offset="100%" stop-color="#c084fc" />
-                    </linearGradient>
-                </defs>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-            </svg>
-            GlobalNews<span>Portal</span>
-        </div>
-    </nav>
-
-    <div class="container">
-        <header>
-            <h1>O Mundo em <span>Português</span></h1>
-            <p class="subtitle">Pesquise qualquer notícia, artigo ou novidade na web. O nosso motor de inteligência artificial traduz tudo para você em tempo real.</p>
-        </header>
-
-        <div class="search-wrapper">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Pesquisar qualquer assunto (Ex: Solana, Inteligência Artificial...)">
-                <button class="btn-search" onclick="handleSearch()">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    Buscar
-                </button>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container top-bar-inner">
+            <div class="top-links">
+                <a href="#">Ajuda</a> | <a href="#">Sobre</a> | <a href="#">Contato</a>
             </div>
-        </div>
-
-        <nav class="categories" id="categories-container" aria-label="Filtro de Categorias">
-            <button class="cat-btn active" id="btn-all" onclick="loadNews(null, this)">Últimas Notícias</button>
-            <button class="cat-btn" onclick="loadNews('Criptomoedas', this)">Criptomoedas</button>
-            <button class="cat-btn" onclick="loadNews('Negócios', this)">Negócios</button>
-            <button class="cat-btn" onclick="loadNews('Inteligência Artificial', this)">IA &amp; Tech</button>
-            <button class="cat-btn" onclick="loadNews('Global', this)">Mundo</button>
-            <button class="cat-btn" onclick="loadNews('África', this)">África &amp; Angola</button>
-        </nav>
-
-        <main id="news-container" class="news-grid">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Sincronizando com o motor de inteligência...</p>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal for reading full article -->
-    <div class="modal-overlay" id="readerModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Lendo Artigo...</h3>
-                <button class="close-btn" onclick="closeModal()" aria-label="Fechar modal">&times;</button>
-            </div>
-            <div class="article-body" id="articleBody">
-                <div style="text-align: center; padding: 50px;">
-                    <div class="spinner"></div>
-                    <p style="font-family: 'Inter', sans-serif; color: var(--text-muted);">Iniciando o modo leitura premium...</p>
+            <div class="top-search-login">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Pesquisar..." onkeypress="if(event.key === 'Enter') handleSearch()">
+                    <button onclick="handleSearch()">🔍</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="/js/app.js"></script>
+    <!-- Header -->
+    <header class="main-header container">
+        <div class="logo-area">
+            <h1>Global<span>News</span></h1>
+            <p class="date-display" id="currentDate">Novembro 2026 | Portal IA</p>
+        </div>
+        <div class="header-ad">
+            <!-- Espaço para anúncio ou destaque -->
+            <div class="ad-banner">📰 Informação Global. Tradução em Tempo Real.</div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+        <div class="container nav-inner">
+            <a href="#" class="active" onclick="loadNews(null); return false;">HOME</a>
+            <a href="#" onclick="loadNews('Global'); return false;">MUNDO</a>
+            <a href="#" onclick="loadNews('África'); return false;">ÁFRICA</a>
+            <a href="#" onclick="loadNews('Inteligência Artificial'); return false;">TECNOLOGIA & IA</a>
+            <a href="#" onclick="loadNews('Negócios'); return false;">NEGÓCIOS</a>
+            <a href="#" onclick="loadNews('Criptomoedas'); return false;">CRIPTO</a>
+        </div>
+    </nav>
+
+    <!-- Breaking News Ticker -->
+    <div class="ticker-wrap container">
+        <div class="ticker-label">BREAKING NEWS</div>
+        <div class="ticker-content">
+            <marquee behavior="scroll" direction="left" id="ticker-text">
+                Carregando as últimas atualizações globais em tempo real...
+            </marquee>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="container content-layout">
+        
+        <!-- Left Column: Main News -->
+        <div class="main-column">
+            
+            <div class="section-title"><h3>DESTAQUE PRINCIPAL</h3></div>
+            <div id="featured-news" class="featured-news">
+                <div class="loading">Carregando destaque...</div>
+            </div>
+
+            <div class="section-title" style="margin-top: 30px;"><h3>ÚLTIMAS NOTÍCIAS</h3></div>
+            <div id="news-container" class="news-list">
+                <div class="loading">Sincronizando com o motor de inteligência...</div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <aside class="sidebar">
+            
+            <div class="widget">
+                <div class="widget-title"><h4>STAY CONNECTED</h4></div>
+                <div class="social-icons">
+                    <a href="#" class="soc-icon fb">F</a>
+                    <a href="#" class="soc-icon tw">T</a>
+                    <a href="#" class="soc-icon in">IN</a>
+                    <a href="#" class="soc-icon rss">RSS</a>
+                </div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title"><h4>MAIS POPULARES</h4></div>
+                <ul class="popular-list" id="popular-news">
+                    <li>Aguarde...</li>
+                </ul>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title"><h4>NEWSLETTER</h4></div>
+                <div class="newsletter-box">
+                    <p>Receba as principais notícias traduzidas no seu email diariamente.</p>
+                    <input type="email" placeholder="Seu e-mail">
+                    <button>Inscrever</button>
+                </div>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container footer-inner">
+            <div class="footer-col">
+                <h4>SOBRE O PORTAL</h4>
+                <p>O Global News Portal utiliza Inteligência Artificial para buscar, traduzir e resumir as notícias mais importantes do mundo em tempo real para a língua portuguesa.</p>
+            </div>
+            <div class="footer-col">
+                <h4>LINKS ÚTEIS</h4>
+                <ul>
+                    <li><a href="#">Política de Privacidade</a></li>
+                    <li><a href="#">Termos de Uso</a></li>
+                    <li><a href="#">Anuncie Conosco</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>CONTATO</h4>
+                <p>Email: contato@globalnews.com<br>Luanda, Angola</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                &copy; 2026 Global News Portal. Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for reading full article -->
+    <div class="modal-overlay" id="readerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Lendo Artigo...</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="article-body" id="articleBody">
+                Carregando...
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/magazine.js"></script>
+    <script>
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
 </body>
 </html>
